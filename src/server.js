@@ -42,7 +42,6 @@ app.get('/api/all-quizzes', async (req, res) => {
 app.post('/api/quizzes/:id/question', async (req, res) => {
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
     await client.connect();
-
     const db = client.db('test-myself-db');
 
     const id = req.params.id;
@@ -60,6 +59,38 @@ app.post('/api/quizzes/:id/question', async (req, res) => {
     }
 });
 
+app.post('/api/register/user', async (req, res) => {
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+    await client.connect();
+    const db = client.db('test-myself-db');
+
+    const userData = req.body;
+    userData.role = "user";
+    await db.collection('userData').insertOne(userData);
+    const user = await db.collection('userData').findOne({ "id": userData.id });
+
+    if(user) {
+        res.send(user);
+    }
+    else{
+        res.sendStatus(404).send('Failed to create new user !');
+    }
+});
+
+app.get('/api/login/:userid', async (req, res) => {
+    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+    await client.connect();
+    const db = client.db('test-myself-db');
+
+    const id = req.params.userid;
+    const user = await db.collection('userData').findOne({ "google_id": id })
+    if(user){
+        res.send(user)
+    }
+    else{
+        res.sendStatus(404).send('User not found !');
+    }
+});
 
 app.get('/', async (req, res) => {
     res.send('Quiz Room APIs are running!');
